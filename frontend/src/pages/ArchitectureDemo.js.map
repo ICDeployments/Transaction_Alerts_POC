@@ -1,0 +1,1 @@
+{"version":3,"file":"ArchitectureDemo.js","sourceRoot":"","sources":["ArchitectureDemo.tsx"],"names":[],"mappings":";AAAA,OAAO,KAAK,MAAM,OAAO,CAAC;AAE1B,MAAM,gBAAgB,GAAa,GAAG,EAAE;IACtC,OAAO,CACL,cAAK,SAAS,EAAC,uFAAuF,YACpG,cAAK,SAAS,EAAC,wCAAwC,YACrD,cAAK,SAAS,EAAC,gEAAgE,YAC7E,YAAG,SAAS,EAAC,gBAAgB,2EAA+D,GACxF,GACF,GACF,CACP,CAAC;AACJ,CAAC,CAAC;AAEF,eAAe,gBAAgB,CAAC"}

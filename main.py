@@ -4,7 +4,9 @@ Provides endpoints for rule retrieval and transaction analysis.
 """
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+import os
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import sys
@@ -89,7 +91,11 @@ except Exception as e:
 
 @app.get("/")
 async def root():
-    """Health check endpoint."""
+    """Serve SPA index if built; otherwise health check JSON."""
+    static_dir = os.path.join(os.path.dirname(__file__), "frontend", "dist")
+    index_file = os.path.join(static_dir, "index.html")
+    if os.path.isfile(index_file):
+        return FileResponse(index_file)
     return {
         "status": "healthy",
         "service": APP_TITLE,
@@ -440,6 +446,22 @@ async def global_exception_handler(request, exc):
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "An unexpected error occurred"}
     )
+
+
+# If the frontend was built into `frontend/dist`, mount static assets and
+# provide an SPA fallback for client-side routes.
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "frontend", "dist")
+if os.path.isdir(STATIC_DIR):
+    assets_dir = os.path.join(STATIC_DIR, "assets")
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def spa_fallback(full_path: str):
+        index = os.path.join(STATIC_DIR, "index.html")
+        if os.path.isfile(index):
+            return FileResponse(index)
+        raise HTTPException(status_code=404)
 
 
 if __name__ == "__main__":
