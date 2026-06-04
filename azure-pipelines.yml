@@ -1,0 +1,71 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  pythonVersion: '3.11'
+  nodeVersion: '18.x'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildFrontendAndBackend
+        displayName: 'Build Frontend and Backend'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python $(pythonVersion)'
+
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(nodeVersion)'
+            displayName: 'Use Node.js $(nodeVersion)'
+
+          - script: |
+              cd frontend
+              npm ci
+              npm run build
+            displayName: 'Build Frontend'
+
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: 'Install Backend Dependencies'
+
+          - script: |
+              python -m py_compile main.py config.py models.py
+            displayName: 'Compile Python Files'
+            continueOnError: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(Build.SourcesDirectory)'
+              artifactName: 'fraud-alert-app'
+              publishLocation: 'Container'
+            displayName: 'Publish Artifacts'
+
+  - stage: Deploy
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployToAzure
+        displayName: 'Deploy to Azure App Service'
+        environment: 'Production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: 'fraud-alert-app'
+
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: 'Azure Subscription'
+                    appType: 'webAppLinux'
+                    appName: 'Fraud-Transaction-Alert'
+                    package: '$(Pipeline.Workspace)/fraud-alert-app'
+                    runtimeStack: 'PYTHON|3.11'
+                  displayName: 'Deploy to App Service'
