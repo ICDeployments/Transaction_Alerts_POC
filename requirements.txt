@@ -1,0 +1,16 @@
+# FastAPI and server
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+# Azure SDK
+azure-search-documents
+azure-core
+
+# OpenAI SDK (with Azure support)
+openai
+
+# Additional utilities
+python-dotenv
+python-multipart
