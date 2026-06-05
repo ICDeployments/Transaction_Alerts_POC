@@ -448,20 +448,28 @@ async def global_exception_handler(request, exc):
     )
 
 
-# If the frontend was built into `frontend/dist`, mount static assets and
-# provide an SPA fallback for client-side routes.
+# Mount static assets from the built frontend
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "frontend", "dist")
-if os.path.isdir(STATIC_DIR):
-    assets_dir = os.path.join(STATIC_DIR, "assets")
-    if os.path.isdir(assets_dir):
-        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+ASSETS_DIR = os.path.join(STATIC_DIR, "assets")
 
-    @app.get("/{full_path:path}", include_in_schema=False)
-    async def spa_fallback(full_path: str):
-        index = os.path.join(STATIC_DIR, "index.html")
-        if os.path.isfile(index):
-            return FileResponse(index)
-        raise HTTPException(status_code=404)
+# Always attempt to mount assets; FastAPI will handle missing directories gracefully
+try:
+    if os.path.isdir(ASSETS_DIR):
+        app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
+        logger.info(f"Static assets mounted from {ASSETS_DIR}")
+except Exception as e:
+    logger.warning(f"Failed to mount static assets: {e}")
+
+# SPA fallback for client-side routing
+@app.get("/{full_path:path}", include_in_schema=False)
+async def spa_fallback(full_path: str):
+    """Serve index.html for all unmatched routes (SPA routing)."""
+    index_file = os.path.join(STATIC_DIR, "index.html")
+    if os.path.isfile(index_file):
+        logger.debug(f"Serving SPA index for route: {full_path}")
+        return FileResponse(index_file)
+    logger.warning(f"index.html not found at {index_file}")
+    raise HTTPException(status_code=404)
 
 
 if __name__ == "__main__":
