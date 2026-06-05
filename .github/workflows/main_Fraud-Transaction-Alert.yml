@@ -24,29 +24,10 @@ jobs:
           npm ci
           npm run build
 
-      # ---------- BACKEND SETUP ----------
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install backend dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      # ---------- PREPARE DEPLOYMENT PACKAGE ----------
-      - name: Prepare deployment package
-        run: |
-          mkdir deploy
-          cp -r *.py deploy/
-          cp requirements.txt deploy/
-          cp -r frontend/build deploy/ || true
-
-      # ---------- DEPLOY ----------
+      # ---------- DEPLOY DIRECTLY ----------
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: deploy
+          package: .
