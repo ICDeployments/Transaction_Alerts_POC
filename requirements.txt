@@ -14,3 +14,5 @@ openai
 # Additional utilities
 python-dotenv
 python-multipart
+
+gunicorn
