@@ -7,10 +7,12 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ---------- FRONTEND BUILD ----------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -22,6 +24,7 @@ jobs:
           npm ci
           npm run build
 
+      # ---------- BACKEND SETUP ----------
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -32,12 +35,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run backend lint/tests (optional)
-        run: echo "No tests configured" || true
+      # ---------- PREPARE DEPLOYMENT PACKAGE ----------
+      - name: Prepare deployment package
+        run: |
+          mkdir deploy
+          cp -r *.py deploy/
+          cp requirements.txt deploy/
+          cp -r frontend/build deploy/ || true
 
+      # ---------- DEPLOY ----------
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: .
+          package: deploy
