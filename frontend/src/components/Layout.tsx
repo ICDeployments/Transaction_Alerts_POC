@@ -29,7 +29,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="relative group">
                 <div className="relative h-14 px-4 bg-white rounded-lg flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow">
                   <img 
-                    src={cognizantLogo} 
+                    src="/image_folder/Cognizant-Logo.png"
                     alt="Cognizant" 
                     className="h-10 w-auto object-contain"
                   />
